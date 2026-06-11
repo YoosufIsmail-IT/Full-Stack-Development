@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberForge — Offensive Security Training</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0a0b0d;
+    --surface:   #111318;
+    --card:      #161920;
+    --border:    #222530;
+    --red:       #e8212a;
+    --red-dim:   #9b161c;
+    --red-glow:  rgba(232,33,42,0.18);
+    --text:      #e8eaf0;
+    --muted:     #6b7280;
+    --mono:      'Space Mono', monospace;
+    --sans:      'Space Grotesk', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.4;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 5%;
+    height: 68px;
+    background: rgba(10,11,13,0.88);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-weight: 700; font-size: 1.15rem;
+    color: var(--text); text-decoration: none; letter-spacing: -0.02em;
+  }
+  .nav-logo .dot { color: var(--red); }
+
+  .nav-links {
+    display: flex; gap: 2rem; list-style: none;
+  }
+  .nav-links a {
+    color: var(--muted); text-decoration: none; font-size: 0.875rem;
+    font-weight: 500; letter-spacing: 0.03em; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  .nav-cta {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .btn-ghost {
+    background: none; border: 1px solid var(--border);
+    color: var(--text); padding: 8px 18px; border-radius: 4px;
+    font-family: var(--sans); font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: border-color 0.2s, color 0.2s; text-decoration: none;
+  }
+  .btn-ghost:hover { border-color: var(--red); color: var(--red); }
+
+  .btn-red {
+    background: var(--red); border: none;
+    color: #fff; padding: 8px 20px; border-radius: 4px;
+    font-family: var(--sans); font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; transition: background 0.2s; text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+  .btn-red:hover { background: #c41820; }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative; min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 120px 5% 80px;
+    overflow: hidden;
+  }
+
+  /* Grid lines background */
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(232,33,42,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,33,42,0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%);
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 400;
+    color: var(--red); letter-spacing: 0.15em; text-transform: uppercase;
+    margin-bottom: 1.5rem; position: relative; z-index: 1;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .hero-eyebrow::before {
+    content: ''; display: inline-block; width: 28px; height: 1px; background: var(--red);
+  }
+
+  .hero h1 {
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    font-weight: 700; line-height: 1.05; letter-spacing: -0.03em;
+    max-width: 800px; position: relative; z-index: 1;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 em {
+    font-style: normal; color: var(--red);
+    text-shadow: 0 0 40px var(--red-glow);
+  }
+
+  .hero-sub {
+    font-size: 1.15rem; color: var(--muted); max-width: 540px;
+    line-height: 1.7; position: relative; z-index: 1; margin-bottom: 2.5rem;
+  }
+
+  .hero-actions {
+    display: flex; gap: 14px; flex-wrap: wrap; position: relative; z-index: 1;
+  }
+  .btn-red-lg {
+    background: var(--red); color: #fff; border: none;
+    padding: 14px 32px; border-radius: 4px;
+    font-family: var(--sans); font-weight: 700; font-size: 0.95rem;
+    cursor: pointer; transition: background 0.2s, transform 0.15s;
+    letter-spacing: 0.02em; text-decoration: none;
+  }
+  .btn-red-lg:hover { background: #c41820; transform: translateY(-1px); }
+  .btn-outline-lg {
+    background: none; color: var(--text); border: 1px solid var(--border);
+    padding: 14px 32px; border-radius: 4px;
+    font-family: var(--sans); font-weight: 600; font-size: 0.95rem;
+    cursor: pointer; transition: border-color 0.2s, color 0.2s;
+    text-decoration: none;
+  }
+  .btn-outline-lg:hover { border-color: var(--text); }
+
+  .hero-stats {
+    display: flex; gap: 3rem; margin-top: 4rem;
+    position: relative; z-index: 1;
+    padding-top: 3rem; border-top: 1px solid var(--border);
+  }
+  .stat-val {
+    font-family: var(--mono); font-size: 2rem; font-weight: 700;
+    color: var(--text); letter-spacing: -0.03em;
+  }
+  .stat-val span { color: var(--red); }
+  .stat-lbl {
+    font-size: 0.8rem; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.1em; margin-top: 2px;
+  }
+
+  /* ── TICKER ── */
+  .ticker {
+    background: var(--red); overflow: hidden; white-space: nowrap;
+    padding: 10px 0; position: relative; z-index: 10;
+  }
+  .ticker-inner {
+    display: inline-flex; gap: 0;
+    animation: ticker 28s linear infinite;
+  }
+  .ticker-item {
+    font-family: var(--mono); font-size: 0.78rem; font-weight: 700;
+    color: #fff; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0 2.5rem;
+  }
+  .ticker-item::before { content: '▸  '; }
+  @keyframes ticker {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* ── SECTIONS ── */
+  section { padding: 100px 5%; position: relative; z-index: 1; }
+
+  .section-label {
+    font-family: var(--mono); font-size: 0.72rem; color: var(--red);
+    letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::before {
+    content: ''; width: 20px; height: 1px; background: var(--red);
+  }
+
+  .section-title {
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 700; letter-spacing: -0.025em; line-height: 1.15;
+    margin-bottom: 1.2rem;
+  }
+
+  .section-body {
+    color: var(--muted); max-width: 580px; line-height: 1.75; font-size: 1.05rem;
+  }
+
+  /* ── TRAINING PATHS ── */
+  .paths-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1px; margin-top: 3.5rem;
+    border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  }
+
+  .path-card {
+    background: var(--card); padding: 2.2rem;
+    transition: background 0.2s; cursor: pointer; position: relative;
+    overflow: hidden;
+  }
+  .path-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px; background: var(--red);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .path-card:hover { background: #1a1e28; }
+  .path-card:hover::before { transform: scaleX(1); }
+
+  .path-icon {
+    width: 44px; height: 44px; border-radius: 8px;
+    background: var(--red-glow); border: 1px solid var(--red-dim);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; margin-bottom: 1.2rem;
+  }
+  .path-title {
+    font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em;
+  }
+  .path-desc { color: var(--muted); font-size: 0.88rem; line-height: 1.65; margin-bottom: 1.2rem; }
+  .path-tag {
+    display: inline-block; font-family: var(--mono); font-size: 0.7rem;
+    color: var(--red); border: 1px solid var(--red-dim);
+    padding: 3px 10px; border-radius: 3px; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  /* ── CERTS SECTION ── */
+  .certs-section {
+    background: var(--surface);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  }
+
+  .certs-layout {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: center;
+  }
+
+  .cert-list { margin-top: 2.5rem; display: flex; flex-direction: column; gap: 0; }
+  .cert-item {
+    display: flex; align-items: flex-start; gap: 1.2rem;
+    padding: 1.4rem 0; border-bottom: 1px solid var(--border); cursor: pointer;
+    transition: padding-left 0.2s;
+  }
+  .cert-item:hover { padding-left: 8px; }
+  .cert-item:last-child { border-bottom: none; }
+  .cert-badge {
+    flex-shrink: 0; font-family: var(--mono); font-size: 0.68rem; font-weight: 700;
+    background: var(--red); color: #fff; padding: 4px 8px; border-radius: 3px;
+    letter-spacing: 0.05em; margin-top: 2px;
+  }
+  .cert-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 3px; }
+  .cert-desc { color: var(--muted); font-size: 0.82rem; line-height: 1.5; }
+
+  .cert-visual {
+    position: relative; display: flex; align-items: center; justify-content: center;
+  }
+  .cert-hex-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%;
+    max-width: 380px;
+  }
+  .hex-cell {
+    aspect-ratio: 1; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--card); display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 0.65rem; color: var(--muted);
+    transition: all 0.3s; cursor: default; padding: 12px; text-align: center;
+    line-height: 1.4;
+  }
+  .hex-cell.active {
+    border-color: var(--red-dim); background: var(--red-glow); color: var(--red);
+  }
+  .hex-cell:hover { border-color: var(--red); color: var(--text); }
+
+  /* ── TERMINAL SECTION ── */
+  .terminal-section {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center;
+  }
+  .terminal-wrap {
+    background: #0d0f14; border: 1px solid var(--border); border-radius: 8px;
+    overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .terminal-bar {
+    background: #1a1e28; padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .t-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .t-dot.r { background: #e8212a; } .t-dot.y { background: #f5a623; } .t-dot.g { background: #27c93f; }
+  .t-title { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); margin-left: 8px; }
+  .terminal-body {
+    padding: 1.5rem; font-family: var(--mono); font-size: 0.8rem; line-height: 1.9;
+    color: #a8b4c8; min-height: 280px;
+  }
+  .t-prompt { color: var(--red); }
+  .t-cmd { color: #e8eaf0; }
+  .t-out { color: #5a9e6a; }
+  .t-out.warn { color: #f5a623; }
+  .t-out.info { color: #5b8fcc; }
+  .t-cursor {
+    display: inline-block; width: 8px; height: 14px; background: var(--red);
+    animation: blink 1s step-end infinite; vertical-align: middle;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* ── LABS SECTION ── */
+  .labs-section { background: var(--surface); border-top: 1px solid var(--border); }
+
+  .labs-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+    margin-top: 3.5rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .lab-card {
+    background: var(--card); padding: 2rem;
+    display: flex; flex-direction: column; gap: 0.8rem;
+  }
+  .lab-status {
+    font-family: var(--mono); font-size: 0.68rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--muted);
+  }
+  .status-dot.live { background: #27c93f; box-shadow: 0 0 6px #27c93f88; }
+  .status-dot.hot  { background: var(--red); box-shadow: 0 0 6px var(--red-glow); }
+  .lab-name { font-size: 1rem; font-weight: 700; }
+  .lab-meta { color: var(--muted); font-size: 0.82rem; line-height: 1.55; }
+  .lab-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; padding-top: 0.8rem; }
+  .ltag {
+    font-family: var(--mono); font-size: 0.65rem; padding: 3px 8px;
+    border-radius: 3px; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .ltag.hard { background: #2a0d0f; color: var(--red); }
+  .ltag.med  { background: #2a1f0a; color: #f5a623; }
+  .ltag.easy { background: #0d2214; color: #27c93f; }
+  .ltag.cat  { background: var(--border); color: var(--muted); }
+
+  /* ── TESTIMONIALS ── */
+  .testimonials-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3.5rem;
+  }
+  .tcard {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 2rem; display: flex; flex-direction: column; gap: 1rem;
+  }
+  .tcard-quote {
+    color: var(--text); font-size: 0.9rem; line-height: 1.75; flex: 1;
+    font-style: italic;
+  }
+  .tcard-author { display: flex; align-items: center; gap: 12px; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--red-glow); border: 1px solid var(--red-dim);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.85rem; color: var(--red); font-family: var(--mono);
+  }
+  .author-name { font-weight: 600; font-size: 0.88rem; }
+  .author-cert { font-family: var(--mono); font-size: 0.7rem; color: var(--red); }
+
+  /* ── CTA BANNER ── */
+  .cta-banner {
+    background: var(--surface); border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    text-align: center; padding: 100px 5%;
+    position: relative; overflow: hidden;
+  }
+  .cta-banner::before {
+    content: '';
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(232,33,42,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cta-banner h2 {
+    font-size: clamp(2rem, 4vw, 3.4rem); font-weight: 700; letter-spacing: -0.03em;
+    max-width: 700px; margin: 0 auto 1.2rem; line-height: 1.1;
+  }
+  .cta-banner p { color: var(--muted); margin-bottom: 2.5rem; font-size: 1.05rem; }
+  .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 60px 5% 40px;
+    border-top: 1px solid var(--border);
+  }
+  .footer-grid {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem;
+  }
+  .footer-brand p {
+    color: var(--muted); font-size: 0.88rem; line-height: 1.7;
+    margin-top: 1rem; max-width: 280px;
+  }
+  .footer-col h4 {
+    font-family: var(--mono); font-size: 0.72rem; color: var(--muted);
+    letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1rem;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.55rem; }
+  .footer-col a { color: var(--muted); text-decoration: none; font-size: 0.88rem; transition: color 0.2s; }
+  .footer-col a:hover { color: var(--text); }
+  .footer-bottom {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 2rem; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 0.8rem; font-family: var(--mono);
+  }
+
+  /* ═══════════════════════════════════════════
+     RESPONSIVE — full breakpoint system
+     ─────────────────────────────────────────
+     1280px  wide desktop (baseline styles above)
+      1024px  laptop / small desktop
+       900px  tablet landscape
+       768px  tablet portrait
+       600px  large mobile / phablet
+       480px  standard mobile
+       360px  small mobile
+  ═══════════════════════════════════════════ */
+
+  /* ── 1024px: laptop / small desktop ── */
+  @media (max-width: 1024px) {
+    /* Nav */
+    .nav-links { gap: 1.4rem; }
+    .nav-links a { font-size: 0.82rem; }
+
+    /* Hero */
+    .hero { padding: 110px 5% 70px; }
+    .hero-stats { gap: 2.2rem; }
+
+    /* Certs */
+    .certs-layout { gap: 3.5rem; }
+
+    /* Terminal */
+    .terminal-section { gap: 3rem; }
+    .terminal-body { font-size: 0.75rem; }
+
+    /* Footer */
+    .footer-grid { gap: 2rem; }
+  }
+
+  /* ── 900px: tablet landscape ── */
+  @media (max-width: 900px) {
+    /* Nav — collapse links, keep logo + CTAs */
+    .nav-links { display: none; }
+    .nav-cta { gap: 8px; }
+    .btn-ghost { padding: 7px 14px; font-size: 0.8rem; }
+    .btn-red   { padding: 7px 14px; font-size: 0.8rem; }
+
+    /* Hero */
+    .hero { padding: 100px 5% 60px; min-height: auto; }
+    .hero-stats { flex-wrap: wrap; gap: 2rem; padding-top: 2rem; margin-top: 3rem; }
+
+    /* Sections */
+    section { padding: 72px 5%; }
+
+    /* 2-col layouts → 1 col */
+    .certs-layout   { grid-template-columns: 1fr; gap: 3rem; }
+    .terminal-section { grid-template-columns: 1fr; gap: 2.8rem; }
+
+    /* Certs visual: compact grid */
+    .cert-hex-grid { max-width: 100%; grid-template-columns: repeat(4, 1fr); }
+
+    /* Labs 3→2 col */
+    .labs-grid { grid-template-columns: repeat(2, 1fr); }
+
+    /* Testimonials 3→2 col */
+    .testimonials-grid { grid-template-columns: repeat(2, 1fr); }
+
+    /* Footer 4→2 col */
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+    .footer-brand { grid-column: 1 / -1; }
+
+    /* CTA */
+    .cta-banner { padding: 72px 5%; }
+  }
+
+  /* ── 768px: tablet portrait ── */
+  @media (max-width: 768px) {
+    /* Nav */
+    nav { padding: 0 4%; height: 60px; }
+    .nav-logo { font-size: 1rem; }
+
+    /* Hero */
+    .hero { padding: 90px 4% 56px; }
+    .hero-sub { font-size: 1rem; }
+    .hero-stats { gap: 1.6rem; }
+    .stat-val { font-size: 1.7rem; }
+
+    /* Sections */
+    section { padding: 64px 4%; }
+    .section-title { margin-bottom: 1rem; }
+
+    /* Paths grid: stay auto-fill but smaller min */
+    .paths-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+
+    /* Terminal font shrink */
+    .terminal-body { font-size: 0.72rem; min-height: 240px; }
+    .t-title { display: none; }
+
+    /* Labs 2→2 (already set), just tighten padding */
+    .lab-card { padding: 1.5rem; }
+
+    /* Testimonials 2→1 col for portrait tablets */
+    .testimonials-grid { grid-template-columns: 1fr; }
+
+    /* CTA */
+    .cta-banner h2 { font-size: clamp(1.7rem, 5vw, 2.6rem); }
+    .cta-banner { padding: 60px 4%; }
+
+    /* Footer */
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    footer { padding: 48px 4% 32px; }
+    .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+  }
+
+  /* ── 600px: large mobile / phablet ── */
+  @media (max-width: 600px) {
+    /* Nav */
+    nav { padding: 0 4%; height: 56px; }
+    .btn-ghost { display: none; }          /* hide Sign In on small screens */
+    .btn-red { padding: 8px 16px; font-size: 0.82rem; }
+
+    /* Hero */
+    .hero { padding: 80px 4% 52px; }
+    .hero h1 { font-size: clamp(2rem, 9vw, 2.8rem); }
+    .hero-sub { font-size: 0.96rem; max-width: 100%; }
+    .hero-actions { gap: 10px; }
+    .btn-red-lg, .btn-outline-lg { padding: 12px 22px; font-size: 0.88rem; width: 100%; text-align: center; }
+    .hero-stats { gap: 1.2rem; margin-top: 2.5rem; padding-top: 2rem; }
+    .stat-val { font-size: 1.5rem; }
+    .stat-lbl { font-size: 0.72rem; }
+
+    /* Ticker */
+    .ticker-item { font-size: 0.7rem; padding: 0 1.5rem; }
+
+    /* Sections */
+    section { padding: 56px 4%; }
+    .section-title { font-size: clamp(1.5rem, 6vw, 2rem); }
+    .section-body { font-size: 0.95rem; }
+
+    /* Paths → 1 col */
+    .paths-grid { grid-template-columns: 1fr; }
+    .path-card { padding: 1.8rem; }
+
+    /* Certs */
+    .cert-hex-grid { grid-template-columns: repeat(3, 1fr); }
+    .hex-cell { font-size: 0.58rem; padding: 8px; }
+
+    /* Terminal */
+    .terminal-body { font-size: 0.68rem; min-height: 200px; padding: 1.2rem; }
+
+    /* Labs → 1 col */
+    .labs-grid { grid-template-columns: 1fr; }
+
+    /* Footer → 1 col */
+    .footer-grid { grid-template-columns: 1fr; gap: 1.8rem; }
+    .footer-brand { grid-column: auto; }
+
+    /* CTA */
+    .cta-actions { flex-direction: column; align-items: center; }
+    .cta-actions a { width: 100%; max-width: 320px; text-align: center; }
+  }
+
+  /* ── 480px: standard mobile ── */
+  @media (max-width: 480px) {
+    /* Nav */
+    .nav-logo { font-size: 0.95rem; }
+
+    /* Hero */
+    .hero { padding: 72px 4% 48px; }
+    .hero-eyebrow { font-size: 0.65rem; }
+    .hero h1 { font-size: clamp(1.85rem, 8.5vw, 2.4rem); letter-spacing: -0.025em; }
+    .hero-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem 2rem; }
+
+    /* Ticker */
+    .ticker-item { padding: 0 1.2rem; font-size: 0.66rem; }
+
+    /* Sections */
+    section { padding: 48px 4%; }
+    .section-label { font-size: 0.65rem; }
+
+    /* Certs */
+    .cert-hex-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .hex-cell { font-size: 0.54rem; padding: 6px; }
+    .cert-item { gap: 0.9rem; }
+
+    /* Terminal */
+    .terminal-body { font-size: 0.64rem; line-height: 1.7; }
+    .terminal-bar { padding: 8px 12px; }
+    .t-dot { width: 10px; height: 10px; }
+
+    /* Path cards */
+    .path-card { padding: 1.5rem; }
+    .path-icon { width: 38px; height: 38px; font-size: 1rem; }
+
+    /* Lab cards */
+    .lab-card { padding: 1.3rem; }
+
+    /* Testimonial cards */
+    .tcard { padding: 1.5rem; }
+
+    /* CTA */
+    .cta-banner { padding: 52px 4%; }
+    .cta-banner h2 { font-size: clamp(1.5rem, 7vw, 2rem); }
+
+    /* Footer */
+    footer { padding: 40px 4% 28px; }
+    .footer-bottom { font-size: 0.72rem; }
+  }
+
+  /* ── 360px: small mobile ── */
+  @media (max-width: 360px) {
+    nav { height: 52px; padding: 0 3.5%; }
+    .nav-logo { font-size: 0.88rem; }
+    .btn-red { padding: 7px 12px; font-size: 0.78rem; }
+
+    .hero { padding: 66px 3.5% 44px; }
+    .hero h1 { font-size: 1.7rem; }
+    .hero-sub { font-size: 0.9rem; }
+    .btn-red-lg, .btn-outline-lg { padding: 11px 18px; font-size: 0.84rem; }
+
+    section { padding: 44px 3.5%; }
+    .section-title { font-size: 1.4rem; }
+
+    .cert-hex-grid { grid-template-columns: repeat(2, 1fr); }
+    .terminal-body { font-size: 0.6rem; }
+    .paths-grid, .labs-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── HAMBURGER MENU (mobile nav) ── */
+  .nav-hamburger {
+    display: none;
+    flex-direction: column; gap: 5px; cursor: pointer;
+    background: none; border: none; padding: 6px; margin-left: 8px;
+  }
+  .nav-hamburger span {
+    display: block; width: 22px; height: 2px;
+    background: var(--text); border-radius: 2px;
+    transition: transform 0.25s, opacity 0.25s;
+  }
+  .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+  .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  @media (max-width: 900px) {
+    .nav-hamburger { display: flex; }
+  }
+
+  /* Mobile nav drawer */
+  .nav-drawer {
+    display: none;
+    position: fixed; top: 60px; left: 0; right: 0; z-index: 99;
+    background: rgba(10,11,13,0.97);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 4%;
+    flex-direction: column; gap: 0;
+  }
+  .nav-drawer.open { display: flex; }
+  .nav-drawer a {
+    color: var(--muted); text-decoration: none; font-size: 1rem;
+    font-weight: 500; padding: 0.9rem 0;
+    border-bottom: 1px solid var(--border);
+    transition: color 0.2s;
+  }
+  .nav-drawer a:last-child { border-bottom: none; }
+  .nav-drawer a:hover { color: var(--text); }
+  .nav-drawer .drawer-cta {
+    display: flex; gap: 10px; padding-top: 1.2rem; flex-wrap: wrap;
+  }
+  .nav-drawer .drawer-cta a {
+    border: none; padding: 0; font-size: 0.9rem;
+  }
+  .nav-drawer .btn-red-lg { flex: 1; text-align: center; }
+  .nav-drawer .btn-outline-lg { flex: 1; text-align: center; }
+
+  @media (max-width: 768px) {
+    .nav-drawer { top: 56px; }
+  }
+
+  /* ── PRINT ── */
+  @media print {
+    nav, .ticker, .hero::after, .t-cursor,
+    .cta-banner, footer { display: none; }
+    body { background: #fff; color: #000; }
+    .hero { min-height: auto; padding: 2rem 0; }
+    section { padding: 2rem 0; break-inside: avoid; }
+  }
+
+  /* ── REDUCED MOTION ── */
+  @media (prefers-reduced-motion: reduce) {
+    .ticker-inner { animation: none; }
+    .t-cursor { animation: none; opacity: 1; }
+    .path-card, .cert-item, .hex-cell { transition: none; }
+    .btn-red-lg:hover { transform: none; }
+  }
+
+  /* ── HIGH CONTRAST / FORCED COLORS ── */
+  @media (forced-colors: active) {
+    .btn-red, .btn-red-lg { forced-color-adjust: none; }
+    .ticker { forced-color-adjust: none; }
+    .status-dot.live, .status-dot.hot { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">CYBER<span class="dot">_</span>FORGE</a>
+  <ul class="nav-links">
+    <li><a href="#">Training</a></li>
+    <li><a href="#">Certifications</a></li>
+    <li><a href="#">Labs</a></li>
+    <li><a href="#">Community</a></li>
+    <li><a href="#">Enterprise</a></li>
+  </ul>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="nav-cta">
+      <a href="#" class="btn-ghost">Sign In</a>
+      <a href="#" class="btn-red">Start Free Trial</a>
+    </div>
+    <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE DRAWER -->
+<div class="nav-drawer" id="navDrawer">
+  <a href="#">Training</a>
+  <a href="#">Certifications</a>
+  <a href="#">Labs</a>
+  <a href="#">Community</a>
+  <a href="#">Enterprise</a>
+  <div class="drawer-cta">
+    <a href="#" class="btn-outline-lg">Sign In</a>
+    <a href="#" class="btn-red-lg">Start Free Trial</a>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">Offensive Security Training</div>
+  <h1>Master the art of<br><em>ethical hacking.</em></h1>
+  <p class="hero-sub">
+    Hands-on penetration testing courses built for security professionals who want real skills, not just theory. Learn by breaking things — responsibly.
+  </p>
+  <div class="hero-actions">
+    <a href="#" class="btn-red-lg">Explore Courses →</a>
+    <a href="#" class="btn-outline-lg">View Learning Paths</a>
+  </div>
+  <div class="hero-stats">
+    <div>
+      <div class="stat-val">180<span>K+</span></div>
+      <div class="stat-lbl">Active Learners</div>
+    </div>
+    <div>
+      <div class="stat-val">900<span>+</span></div>
+      <div class="stat-lbl">Lab Machines</div>
+    </div>
+    <div>
+      <div class="stat-val">24<span>/7</span></div>
+      <div class="stat-lbl">Lab Access</div>
+    </div>
+    <div>
+      <div class="stat-val">40<span>+</span></div>
+      <div class="stat-lbl">Certifications</div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span class="ticker-item">Penetration Testing</span>
+    <span class="ticker-item">Web Application Security</span>
+    <span class="ticker-item">Exploit Development</span>
+    <span class="ticker-item">Active Directory Attacks</span>
+    <span class="ticker-item">Red Team Operations</span>
+    <span class="ticker-item">Malware Analysis</span>
+    <span class="ticker-item">Cloud Security</span>
+    <span class="ticker-item">Bug Bounty Hunting</span>
+    <span class="ticker-item">Reverse Engineering</span>
+    <span class="ticker-item">Penetration Testing</span>
+    <span class="ticker-item">Web Application Security</span>
+    <span class="ticker-item">Exploit Development</span>
+    <span class="ticker-item">Active Directory Attacks</span>
+    <span class="ticker-item">Red Team Operations</span>
+    <span class="ticker-item">Malware Analysis</span>
+    <span class="ticker-item">Cloud Security</span>
+    <span class="ticker-item">Bug Bounty Hunting</span>
+    <span class="ticker-item">Reverse Engineering</span>
+  </div>
+</div>
+
+<!-- TRAINING PATHS -->
+<section>
+  <div class="section-label">Learning Paths</div>
+  <h2 class="section-title">Structured paths for every level</h2>
+  <p class="section-body">Whether you're starting from zero or fine-tuning red team operations, every path is built around real-world attack scenarios.</p>
+  <div class="paths-grid">
+    <div class="path-card">
+      <div class="path-icon">🔓</div>
+      <div class="path-title">Penetration Testing Fundamentals</div>
+      <div class="path-desc">Master core methodologies: enumeration, exploitation, post-exploitation, and reporting. Ideal entry point for aspiring pentesters.</div>
+      <span class="path-tag">Beginner</span>
+    </div>
+    <div class="path-card">
+      <div class="path-icon">🌐</div>
+      <div class="path-title">Web Application Attacks</div>
+      <div class="path-desc">Deep dives into SQLi, XSS, SSRF, IDOR, and modern framework vulnerabilities. Built around real CVE walkthroughs.</div>
+      <span class="path-tag">Intermediate</span>
+    </div>
+    <div class="path-card">
+      <div class="path-icon">🏢</div>
+      <div class="path-title">Active Directory & Windows</div>
+      <div class="path-desc">Kerberoasting, Pass-the-Hash, DCSync, and full domain compromise techniques in a simulated enterprise lab.</div>
+      <span class="path-tag">Intermediate</span>
+    </div>
+    <div class="path-card">
+      <div class="path-icon">⚙️</div>
+      <div class="path-title">Exploit Development</div>
+      <div class="path-desc">Buffer overflows, ROP chains, SEH exploitation, and writing custom shellcode. Low-level offensive engineering.</div>
+      <span class="path-tag">Advanced</span>
+    </div>
+    <div class="path-card">
+      <div class="path-icon">☁️</div>
+      <div class="path-title">Cloud Penetration Testing</div>
+      <div class="path-desc">Attack and pivot through AWS, Azure, and GCP environments. Identity abuse, S3 misconfigs, and cloud-native exploits.</div>
+      <span class="path-tag">Intermediate</span>
+    </div>
+    <div class="path-card">
+      <div class="path-icon">🎯</div>
+      <div class="path-title">Red Team Operations</div>
+      <div class="path-desc">Full adversary simulation: C2 infrastructure, evasion, lateral movement, and objective-based operations in restricted networks.</div>
+      <span class="path-tag">Advanced</span>
+    </div>
+  </div>
+</section>
+
+<!-- CERTIFICATIONS -->
+<section class="certs-section">
+  <div class="certs-layout">
+    <div>
+      <div class="section-label">Certifications</div>
+      <h2 class="section-title">Earn credentials that<br>actually mean something</h2>
+      <p class="section-body">Our exams are 24-hour practical challenges — no multiple choice. Hiring managers know what passing looks like.</p>
+      <div class="cert-list">
+        <div class="cert-item">
+          <span class="cert-badge">CFPT</span>
+          <div>
+            <div class="cert-name">CyberForge Penetration Tester</div>
+            <div class="cert-desc">Foundational certification covering external and internal network pentesting methodology.</div>
+          </div>
+        </div>
+        <div class="cert-item">
+          <span class="cert-badge">CFWP</span>
+          <div>
+            <div class="cert-name">CyberForge Web Professional</div>
+            <div class="cert-desc">Comprehensive web application exploitation including modern SPA vulnerabilities.</div>
+          </div>
+        </div>
+        <div class="cert-item">
+          <span class="cert-badge">CFED</span>
+          <div>
+            <div class="cert-name">CyberForge Exploit Developer</div>
+            <div class="cert-desc">Advanced binary exploitation, shellcoding, and vulnerability research certification.</div>
+          </div>
+        </div>
+        <div class="cert-item">
+          <span class="cert-badge">CFRT</span>
+          <div>
+            <div class="cert-name">CyberForge Red Team Operator</div>
+            <div class="cert-desc">Elite adversary simulation certification for senior offensive security professionals.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cert-visual">
+      <div class="cert-hex-grid">
+        <div class="hex-cell active">NET SCAN</div>
+        <div class="hex-cell active">ENUM</div>
+        <div class="hex-cell">FUZZING</div>
+        <div class="hex-cell active">PRIVESC</div>
+        <div class="hex-cell">PIVOTING</div>
+        <div class="hex-cell active">C2</div>
+        <div class="hex-cell active">AD ATTACKS</div>
+        <div class="hex-cell">EXFIL</div>
+        <div class="hex-cell active">BOF</div>
+        <div class="hex-cell">EVASION</div>
+        <div class="hex-cell active">SHELLCODE</div>
+        <div class="hex-cell">REPORT</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TERMINAL / LABS INTRO -->
+<section>
+  <div class="terminal-section">
+    <div>
+      <div class="section-label">Practice Environment</div>
+      <h2 class="section-title">Real machines. Real vulnerabilities.</h2>
+      <p class="section-body">
+        Spin up live lab environments in seconds. Every machine runs actual vulnerable software — no simulators, no sanitized demos. You break it, you learn it.
+      </p>
+      <br>
+      <p class="section-body">
+        Labs persist across sessions so you can pick up exactly where you left off, and every machine comes with community-written write-ups unlocked after you root it.
+      </p>
+    </div>
+    <div class="terminal-wrap">
+      <div class="terminal-bar">
+        <div class="t-dot r"></div>
+        <div class="t-dot y"></div>
+        <div class="t-dot g"></div>
+        <span class="t-title">forge-lab — kali@attacker</span>
+      </div>
+      <div class="terminal-body">
+        <div><span class="t-prompt">┌──(kali㉿attacker)</span><span class="t-cmd">-[~/targets]</span></div>
+        <div><span class="t-prompt">└─$</span> <span class="t-cmd">nmap -sV -sC 10.10.14.52</span></div>
+        <div class="t-out">Starting Nmap 7.94 ...</div>
+        <div class="t-out">PORT     STATE  SERVICE   VERSION</div>
+        <div class="t-out">22/tcp   open   ssh       OpenSSH 8.9</div>
+        <div class="t-out warn">80/tcp   open   http      Apache 2.4.52</div>
+        <div class="t-out">3306/tcp closed mysql</div>
+        <div>&nbsp;</div>
+        <div><span class="t-prompt">└─$</span> <span class="t-cmd">gobuster dir -u http://10.10.14.52 -w /usr/share/wordlists/common.txt</span></div>
+        <div class="t-out info">[+] /admin     (Status: 302) [Size: 289]</div>
+        <div class="t-out info">[+] /backup    (Status: 200) [Size: 4103]</div>
+        <div class="t-out warn">[+] /upload    (Status: 200) [Size: 1024]</div>
+        <div>&nbsp;</div>
+        <div><span class="t-prompt">└─$</span> <span class="t-cursor"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LABS -->
+<section class="labs-section">
+  <div class="section-label">Featured Labs</div>
+  <h2 class="section-title">Machines released every week</h2>
+  <p class="section-body">Retired machines include full write-ups. Active machines earn you leaderboard points and bragging rights.</p>
+  <div class="labs-grid">
+    <div class="lab-card">
+      <div class="lab-status"><span class="status-dot live"></span>Active</div>
+      <div class="lab-name">Darkbreach</div>
+      <div class="lab-meta">Linux-based box with a vulnerable API gateway and misconfigured Docker daemon. Multiple paths to root.</div>
+      <div class="lab-tags">
+        <span class="ltag hard">Hard</span>
+        <span class="ltag cat">Linux</span>
+        <span class="ltag cat">API</span>
+        <span class="ltag cat">Docker</span>
+      </div>
+    </div>
+    <div class="lab-card">
+      <div class="lab-status"><span class="status-dot hot"></span>Popular</div>
+      <div class="lab-name">Ironvault</div>
+      <div class="lab-meta">Windows AD environment with Kerberoasting and GPO abuse paths. Simulates a mid-size enterprise.</div>
+      <div class="lab-tags">
+        <span class="ltag med">Medium</span>
+        <span class="ltag cat">Windows</span>
+        <span class="ltag cat">AD</span>
+      </div>
+    </div>
+    <div class="lab-card">
+      <div class="lab-status"><span class="status-dot live"></span>Active</div>
+      <div class="lab-name">Ghostnode</div>
+      <div class="lab-meta">IoT firmware reverse engineering challenge. Extract credentials from a MIPS binary to gain initial access.</div>
+      <div class="lab-tags">
+        <span class="ltag hard">Hard</span>
+        <span class="ltag cat">IoT</span>
+        <span class="ltag cat">Rev Eng</span>
+      </div>
+    </div>
+    <div class="lab-card">
+      <div class="lab-status"><span class="status-dot">&#8203;</span>Retired</div>
+      <div class="lab-name">Pulsar</div>
+      <div class="lab-meta">Blind SQLi to RCE via a custom CMS. Classic exploitation chain with a modern WAF bypass twist.</div>
+      <div class="lab-tags">
+        <span class="ltag easy">Easy</span>
+        <span class="ltag cat">Web</span>
+        <span class="ltag cat">SQLi</span>
+      </div>
+    </div>
+    <div class="lab-card">
+      <div class="lab-status"><span class="status-dot live"></span>Active</div>
+      <div class="lab-name">Oblivion</div>
+      <div class="lab-meta">Full red team simulation across a segmented network. Pivot through three subnets to reach domain admin.</div>
+      <div class="lab-tags">
+        <span class="ltag hard">Hard</span>
+        <span class="ltag cat">Network</span>
+        <span class="ltag cat">Pivoting</span>
+      </div>
+    </div>
+    <div class="lab-card">
+      <div class="lab-status"><span class="status-dot">&#8203;</span>Retired</div>
+      <div class="lab-name">Cipher</div>
+      <div class="lab-meta">Buffer overflow on a custom 32-bit service. Write-up available. Great intro to exploit development.</div>
+      <div class="lab-tags">
+        <span class="ltag med">Medium</span>
+        <span class="ltag cat">Linux</span>
+        <span class="ltag cat">BOF</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section>
+  <div class="section-label">Community</div>
+  <h2 class="section-title">From learners who've been through it</h2>
+  <div class="testimonials-grid">
+    <div class="tcard">
+      <div class="tcard-quote">"The CFPT exam pushed me harder than any other cert I've done. When I passed, I actually felt like I'd earned something. My first client engagement went smoother because of it."</div>
+      <div class="tcard-author">
+        <div class="avatar">MR</div>
+        <div>
+          <div class="author-name">Marco R.</div>
+          <div class="author-cert">CFPT Certified</div>
+        </div>
+      </div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-quote">"Ironvault alone was worth the subscription. I spent two weeks on it and came out understanding Active Directory attacks better than I did after six months of reading."</div>
+      <div class="tcard-author">
+        <div class="avatar">SJ</div>
+        <div>
+          <div class="author-name">Sarah J.</div>
+          <div class="author-cert">CFWP Certified</div>
+        </div>
+      </div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-quote">"I transitioned from dev to security using this platform. The web path mapped exactly to what I encounter in bug bounty. My first P1 came two months after finishing the course."</div>
+      <div class="tcard-author">
+        <div class="avatar">DL</div>
+        <div>
+          <div class="author-name">Daniel L.</div>
+          <div class="author-cert">Bug Bounty Hunter</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section class="cta-banner">
+  <h2>Ready to think like an attacker?</h2>
+  <p>Start your free 7-day trial. No credit card required. Full lab access from day one.</p>
+  <div class="cta-actions">
+    <a href="#" class="btn-red-lg">Start Free Trial</a>
+    <a href="#" class="btn-outline-lg">View Pricing →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a class="nav-logo" href="#" style="font-size:1.1rem;">CYBER<span class="dot">_</span>FORGE</a>
+      <p>Hands-on offensive security training for professionals who want real-world skills. Learn. Break. Certify.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Training</h4>
+      <ul>
+        <li><a href="#">Learning Paths</a></li>
+        <li><a href="#">Course Catalog</a></li>
+        <li><a href="#">Lab Access</a></li>
+        <li><a href="#">CTF Events</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Certifications</h4>
+      <ul>
+        <li><a href="#">CFPT</a></li>
+        <li><a href="#">CFWP</a></li>
+        <li><a href="#">CFED</a></li>
+        <li><a href="#">CFRT</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 CyberForge. All rights reserved.</span>
+    <span>Privacy · Terms · Security</span>
+  </div>
+</footer>
+
+<script>
+  const hamburger = document.getElementById('hamburger');
+  const drawer    = document.getElementById('navDrawer');
+  hamburger.addEventListener('click', () => {
+    const open = drawer.classList.toggle('open');
+    hamburger.classList.toggle('open', open);
+    hamburger.setAttribute('aria-expanded', open);
+  });
+  // Close drawer when any drawer link is tapped
+  drawer.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      drawer.classList.remove('open');
+      hamburger.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', false);
+    });
+  });
+  // Close on outside click
+  document.addEventListener('click', e => {
+    if (!drawer.contains(e.target) && !hamburger.contains(e.target)) {
+      drawer.classList.remove('open');
+      hamburger.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', false);
+    }
+  });
+</script>
+</body>
+</html>
